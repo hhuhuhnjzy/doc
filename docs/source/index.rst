@@ -1,7 +1,7 @@
 Maze Documentation
 ==================
 
-Welcome to the documentation for the Maze framework (formerly AgentOS), a distributed system for orchestrating large language model agents with support for multiple scheduling strategies and agent frameworks.
+Welcome to the documentation for the Maze framework. This guide will walk you through the preparation of the project environment, running in different modes, and the process of task submission.
 
 .. toctree::
    :maxdepth=2

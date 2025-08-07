@@ -31,6 +31,7 @@ Redis is used for message passing and lightweight data storage.
 
 Step 3: Start Resource Layer
 ----------------------------
+AgentOS is divided into a resource layer and a scheduling layer, which need to be started in sequence.The resource layer is responsible for managing and providing underlying computing resources.
 
 .. code-block:: bash
 
@@ -39,6 +40,7 @@ Step 3: Start Resource Layer
 
 Step 4: Start Scheduler Layer
 -----------------------------
+The scheduling layer is responsible for receiving tasks and performing intelligent scheduling according to strategies.
 
 .. code-block:: bash
 
@@ -47,6 +49,7 @@ Step 4: Start Scheduler Layer
 
 Step 5: Dispatch a Demo Task
 ----------------------------
+Once all services are started, you can run a sample to verify that the system is working properly.
 
 .. code-block:: bash
 

@@ -32,11 +32,28 @@ The master node receives DAG tasks, runs the selected scheduling algorithm, and 
 Step 2: Start Slaver Nodes
 --------------------------
 
-Run the following on **each compute node**, including the master:
+Run slaver_api.py on all computing nodes (including the master node, which also acts as a computing node).
 
 .. code-block:: bash
 
+    # Running on node 1
     python slaver_api.py --master_addr 172.17.0.3:5002 --host 172.17.0.3 --port 5003
+
+    # Running on node 1
+    python slaver_api.py --master_addr 172.17.0.3:5002 --host 172.17.0.4 --port 5003
+
+.. list-table:: Argument Descriptions
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Argument
+     - Description
+   * - --master_addr
+     - The Slaver needs to know the address of the Master in order to send a callback notification to it after the task is completed.
+   * - --host
+     - The IP address that the current Slaver node's service is listening on.
+   * - --port
+     - The port that the current Slaver node's service is listening on.
 
 .. note::
    Adjust IP and port accordingly for each node.
@@ -44,8 +61,18 @@ Run the following on **each compute node**, including the master:
 Step 3: Dispatch a DAG Task
 ---------------------------
 
-From any client machine:
+Run dispatch_task.py on any machine that has access to the master node to submit the task.
 
 .. code-block:: bash
 
     python dispatch_task.py --master_addr "172.17.0.3:5002"
+
+.. list-table:: Argument Descriptions
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Argument
+     - Description
+   * - --master_addr
+     - Tell the client where the API address of the master is in order to submit the task to the past.
+

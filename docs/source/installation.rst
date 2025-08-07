@@ -2,6 +2,7 @@ Installation Guide
 ==================
 
 This section explains how to set up the environment and dependencies for Maze (AgentOS).
+We need to create a separate Conda environment for the project and install all dependencies.
 
 .. code-block:: bash
 
