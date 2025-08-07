@@ -1,22 +1,14 @@
-Welcome to Lumache's documentation!
-===================================
+Maze Documentation
+==================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
-
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
-
-.. note::
-
-   This project is under active development.
-
-Contents
---------
+Welcome to the documentation for the Maze framework (formerly AgentOS), a distributed system for orchestrating large language model agents with support for multiple scheduling strategies and agent frameworks.
 
 .. toctree::
+   :maxdepth=2
+   :caption: 📚 Contents
 
-   usage
-   api
+   installation
+   agentos_core
+   baseline
+   agent_framework_autogen
+   agent_framework_agentscope
