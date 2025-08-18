@@ -12,3 +12,4 @@ Welcome to the documentation for the Maze framework. This guide will walk you th
    baseline
    agent_framework_autogen
    agent_framework_agentscope
+   api
