@@ -23,4 +23,6 @@
    maserver_api
    maclient_python_sdk
    maclient_api
+   maplayground
+   matask
    use_case
