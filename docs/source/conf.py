@@ -3,11 +3,11 @@
 # -- Project information
 
 project = 'Maze'
-copyright = '2021, Graziella'
-author = 'Graziella'
-
+copyright = '2025, HUST'
+author = 'HUST'
 release = '0.1'
 version = '0.1.0'
+
 
 # -- General configuration
 

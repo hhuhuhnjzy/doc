@@ -1,15 +1,27 @@
-Maze Documentation
-==================
+Welcome to Maze's documentation!
+===============================
 
-Welcome to the documentation for the Maze framework. This guide will walk you through the preparation of the project environment, running in different modes, and the process of task submission.
+Overview
+--------
+
+Welcome to the Maze framework documentation. Maze is a distributed framework designed to help with large language model agents' development and execution. This document will guide you through the installation, usage, and API references.
+
+Contents:
+---------
 
 .. toctree::
-   :maxdepth=2
-   :caption: 📚 Contents
+   :maxdepth: 2
+   :caption: Contents:
 
+   overview
    installation
-   agentos_core
-   baseline
-   agent_framework_autogen
-   agent_framework_agentscope
-   api
+   quick_start
+   malearn
+   mapath
+   maregister
+   maworker
+   mazerver_api
+   mazeclient_python_sdk
+   mazeclient_api
+   use_case
+
