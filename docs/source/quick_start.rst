@@ -111,8 +111,6 @@ print("✅ [Step 1] Connection successful.\n")
 print("🚀 [Step 2] Defining workflow blueprint...")
 report_workflow = client.new_workflow(name="Simple Report Generation Workflow")
 
-text
-编辑
 
 步骤 3：添加任务并定义依赖关系
 ------------------------------
@@ -158,8 +156,6 @@ text
 task_a_id 是第一个任务的唯一标识符。
 f'{task_a_id}.output.report_content' 表示该任务的输入依赖于 create_report 任务的输出字段 report_content。
 由于 add_analysis 和 add_summary 都只依赖 create_report，它们将被 并行调度执行，节省总执行时间。
-rst
-编辑
 步骤 4：可视化工作流结构（可选）
 ------------------------------
 
@@ -180,8 +176,6 @@ rst
    report_workflow.visualize(style_options=compact_style)
 这将生成一个图形化的 DAG 图，清晰展示任务间的依赖关系。
 
-rst
-编辑
 步骤 5：提交工作流并获取结果
 --------------------------
 
@@ -199,8 +193,6 @@ rst
 
 mode="local"：在本地执行，用于开发调试。
 mode="server"：提交到分布式集群执行。
-rst
-编辑
 步骤 6：等待并获取最终结果
 ------------------------
 
@@ -229,9 +221,6 @@ rst
 .. code-block:: python
 
 run_handle.display_summary()
-
-text
-编辑
 
 步骤 8：清理资源（可选）
 ------------------------

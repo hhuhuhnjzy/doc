@@ -20,8 +20,8 @@ Contents:
    mapath
    maregister
    maworker
-   mazerver_api
-   mazeclient_python_sdk
-   mazeclient_api
+   maserver_api
+   maclient_python_sdk
+   maclient_api
    use_case
 
