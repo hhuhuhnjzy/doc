@@ -5,12 +5,15 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
 所有接口均以 ``/api`` 为前缀，部分接口路径中包含动态参数（如 ``{session_id}``、``{workflow_id}`` 等）。
 
-健康检查与会话管理
+健康检查与资源概览
 --------------------
 
 .. http:get:: /api/health
 
    健康检查接口，返回服务状态和资源统计信息。
+
+   :statuscode 200: 服务正常
+   :statuscode 503: 服务不可用
 
    **响应示例**:
 
@@ -30,6 +33,8 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    列出当前所有活跃会话及其资源概览。
 
+   :statuscode 200: 成功返回会话列表
+
    **响应字段**:
 
    - ``session_id``: 会话唯一标识
@@ -38,16 +43,15 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
    - ``runs_count``: 当前运行实例数量
    - ``tasks_count``: 已注册任务函数数量
 
-.. http:delete:: /api/{session_id}/cleanup
-
-   清理指定会话的所有资源（包括工作流、运行实例、任务函数等）。
-
-客户端会话管理
---------------
+会话管理
+--------
 
 .. http:post:: /api/client/create
 
    创建一个新的 MazeClient 会话。
+
+   :statuscode 201: 会话创建成功
+   :statuscode 400: 请求参数错误
 
    **请求体（JSON）**:
 
@@ -61,12 +65,23 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    返回 ``session_id``，后续所有操作需通过该 ID 标识会话。
 
+.. http:delete:: /api/{session_id}/cleanup
+
+   清理指定会话的所有资源（包括工作流、运行实例、任务函数等）。
+
+   :param string session_id: 会话唯一标识
+   :statuscode 200: 清理成功
+   :statuscode 404: 会话不存在
+
 工作流管理
 ----------
 
 .. http:post:: /api/{session_id}/workflows/create
 
    在指定会话中创建工作流。
+
+   :param string session_id: 会话唯一标识
+   :statuscode 201: 工作流创建成功
 
    **请求体（JSON）**:
 
@@ -84,9 +99,16 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    获取工作流的结构图（任务依赖关系）。
 
+   :param string session_id: 会话唯一标识
+   :param string workflow_id: 工作流 ID
+
 .. http:delete:: /api/{session_id}/workflows/{workflow_id}/tasks/{task_id}
 
    从工作流中删除指定任务（强制删除，无视依赖）。
+
+   :param string session_id: 会话唯一标识
+   :param string workflow_id: 工作流 ID
+   :param string task_id: 任务 ID
 
 任务管理
 --------
@@ -94,6 +116,9 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 .. http:post:: /api/{session_id}/workflows/{workflow_id}/tasks/add
 
    向工作流添加一个任务。
+
+   :param string session_id: 会话唯一标识
+   :param string workflow_id: 工作流 ID
 
    **请求体（JSON）**:
 
@@ -131,6 +156,8 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    通过上传 Python 代码字符串动态注册任务函数。
 
+   :param string session_id: 会话唯一标识
+
    **表单参数**:
 
    - ``task_code``: 包含任务函数定义的 Python 代码（字符串）
@@ -147,6 +174,8 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    上传 ZIP 格式的任务包（包含任务代码、依赖、配置等）。
 
+   :param string session_id: 会话唯一标识
+
    **表单参数**:
 
    - ``task_archive``: ZIP 文件（File）
@@ -161,6 +190,9 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 .. http:post:: /api/{session_id}/workflows/{workflow_id}/submit
 
    提交工作流执行。
+
+   :param string session_id: 会话唯一标识
+   :param string workflow_id: 工作流 ID
 
    **请求体（JSON）**:
 
@@ -177,6 +209,8 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 .. http:post:: /api/{session_id}/tasks/result
 
    获取指定任务的执行结果（支持同步等待）。
+
+   :param string session_id: 会话唯一标识
 
    **请求体（JSON）**:
 
@@ -206,17 +240,14 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
    销毁运行实例，释放资源。
 
-前端支持
---------
+前端与跨域支持
+--------------
 
 .. http:get:: /
 
    返回内置的 Web 前端页面（位于 ``frontend/index.html``），可用于可视化操作。
 
-CORS 支持
----------
-
-API 已启用 CORS，允许任意来源跨域访问，便于 Web 前端集成。
+**CORS 支持**：API 已启用 CORS，允许任意来源跨域访问，便于 Web 前端集成。
 
 错误处理
 --------
