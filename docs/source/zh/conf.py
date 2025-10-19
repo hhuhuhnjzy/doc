@@ -13,7 +13,6 @@ language = 'zh_CN'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.internationalization',
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',

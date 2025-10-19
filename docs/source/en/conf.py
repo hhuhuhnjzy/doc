@@ -13,7 +13,6 @@ language = 'en'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.internationalization',  # 可选：支持多语言（需要 sphinx-intl）
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
