@@ -10,4 +10,6 @@ python:
     - requirements: docs/requirements.txt
 
 sphinx:
-  configuration: docs/source/conf.py
+  configurations:
+    - docs/source/conf.py        # 英文主文档
+    - docs/source/zh/conf.py     # 中文文档
