@@ -1,105 +1,106 @@
 .. _maserver_api:
 
-maserver_api：Maze 统一服务端 API 接口
-===================================
+maserver_api: Unified Server API for Maze
+=========================================
 
-``maserver_api`` 是 Maze 框架的 **中心化服务端入口**，基于 FastAPI 构建，提供完整的 RESTful API 接口，用于：
-- 提交与管理 AI 工作流（DAG）
-- 查询任务状态与结果
-- 同步运行时文件
-- 管理可复用工具（Tool）
-- 清理运行产物
+The ``maserver_api`` module serves as the **centralized server entry point** for the Maze framework. Built on FastAPI, it provides a complete set of RESTful API endpoints for:
 
-所有接口均以 JSON 格式通信，支持文件上传/下载，并与 Ray 集群、DAGContext、任务调度器深度集成。
+- Submitting and managing AI workflows (DAGs)
+- Querying task status and results
+- Synchronizing runtime files
+- Managing reusable tools
+- Cleaning up execution artifacts
 
-启动与配置
-----------
+All APIs communicate via JSON, support file upload/download, and are deeply integrated with the Ray cluster, DAGContext, and task scheduler.
 
-服务通过以下命令启动：
+Startup and Configuration
+-------------------------
+
+The service is started using the following command:
 
 .. code-block:: bash
 
     python maserver_api.py
 
-启动时自动：
-- 连接本地或远程 Ray 集群（``ray.init(address='auto')``）
-- 初始化核心服务（调度器、状态管理器、上下文管理器等）
-- 扫描 ``maze/library/tools/`` 目录，自动注册工具函数
-- 启动后台调度线程（``dag_manager_daps``）
+On startup, it automatically:
+- Connects to a local or remote Ray cluster (``ray.init(address='auto')``)
+- Initializes core services (scheduler, status manager, context manager, etc.)
+- Scans the ``maze/library/tools/`` directory to auto-register tool functions
+- Starts the background scheduling thread (``dag_manager_daps``)
 
-配置来源于项目根目录下的 ``config.toml``，关键字段包括：
+Configuration is loaded from ``config.toml`` in the project root. Key fields include:
 
-- ``[server] host, port``：服务监听地址
-- ``[paths] project_root``：项目根路径（必须）
-- ``[paths] model_folder``：模型目录路径
+- ``[server] host, port``: Service listening address
+- ``[paths] project_root``: Project root path (required)
+- ``[paths] model_folder``: Model directory path
 
-核心服务组件
-------------
+Core Service Components
+-----------------------
 
-服务启动时初始化以下全局组件（通过 ``core_services`` 字典共享）：
+The following global components are initialized at startup and shared via the ``core_services`` dictionary:
 
-- ``dag_submission_queue``：工作流提交队列（``queue.Queue``）
-- ``task_completion_queue``：任务完成回调队列
-- ``status_mgr``：``TaskStatusManager``，记录所有任务状态
-- ``dag_ctx_mgr``：``DAGContextManager``，管理运行时上下文（基于 Ray Actor）
-- ``resource_mgr``：``ComputeNodeResourceManager``，管理计算资源
-- ``scheduler``：``TaskScheduler``，负责任务分发与执行
+- ``dag_submission_queue``: Workflow submission queue (``queue.Queue``)
+- ``task_completion_queue``: Task completion callback queue
+- ``status_mgr``: ``TaskStatusManager``, tracks the status of all tasks
+- ``dag_ctx_mgr``: ``DAGContextManager``, manages runtime context (based on Ray Actor)
+- ``resource_mgr``: ``ComputeNodeResourceManager``, manages compute resources
+- ``scheduler``: ``TaskScheduler``, responsible for task dispatching and execution
 
-API 接口概览
-------------
+API Endpoints Overview
+----------------------
 
 .. list-table::
    :header-rows: 1
 
-   * - 路径
-     - 方法
-     - 功能
+   * - Path
+     - Method
+     - Function
    * - ``/submit_workflow/``
      - POST
-     - 提交新工作流（含 DAG 定义与项目代码）
+     - Submit a new workflow (DAG definition + project code)
    * - ``/runs/{run_id}/summary``
      - GET
-     - 获取指定运行的摘要信息
+     - Retrieve summary information for a specific run
    * - ``/runs/destroy``
      - POST
-     - 清理已完成运行的所有产物
+     - Clean up all artifacts from completed runs
    * - ``/runs/{run_id}/download``
      - GET
-     - 下载整个运行目录的 ZIP 包
+     - Download a ZIP archive of the entire run directory
    * - ``/get/``
      - POST
-     - 获取单个任务的执行结果或错误信息
+     - Retrieve the result or error of a single task
    * - ``/runs/{run_id}/tasks/{task_id}/cancel``
      - POST
-     - 请求取消指定任务（支持运行中任务的尽力取消）
+     - Request cancellation of a specific task (best-effort cancellation for running tasks)
    * - ``/files/hashes/{run_id}``
      - GET
-     - 获取运行目录中所有文件的 SHA256 哈希清单
+     - Get SHA256 hash manifest of all files in the run directory
    * - ``/files/download/{run_id}``
      - POST
-     - 下载指定文件列表（用于 Worker 拉取依赖）
+     - Download a specified list of files (used by Workers to pull dependencies)
    * - ``/files/upload/{run_id}``
      - POST
-     - 上传新生成的文件（用于 Worker 推送结果）
+     - Upload newly generated files (used by Workers to push results)
    * - ``/tools``
      - GET
-     - 列出所有已注册的工具
+     - List all registered tools
    * - ``/tools/upload``
      - POST
-     - 上传新工具（含元数据与代码包）
+     - Upload a new tool (with metadata and code package)
    * - ``/tools/{tool_name}``
      - DELETE
-     - 删除指定工具
+     - Delete a specified tool
 
-详细接口说明
-------------
+Detailed API Specifications
+---------------------------
 
-提交工作流：``POST /submit_workflow/``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Submit Workflow: ``POST /submit_workflow/``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**请求体（multipart/form-data）**：
+**Request Body (multipart/form-data)**:
 
-- ``workflow_payload``: JSON 文件，包含 DAG 定义，格式如下：
+- ``workflow_payload``: JSON file containing the DAG definition, formatted as:
 
   .. code-block:: json
 
@@ -120,9 +121,9 @@ API 接口概览
       }
     }
 
-- ``project_archive``: ZIP 文件，包含用户项目代码（将被解压至运行沙箱）
+- ``project_archive``: ZIP file containing user project code (will be extracted into the execution sandbox)
 
-**响应**：
+**Response**:
 
 .. code-block:: json
 
@@ -132,16 +133,16 @@ API 接口概览
       "run_id": "a1b2c3d4-..."
     }
 
-获取任务结果：``POST /get/``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get Task Result: ``POST /get/``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**请求体（JSON）**：
+**Request Body (JSON)**:
 
 .. code-block:: json
 
     { "run_id": "a1b2c3d4-...", "task_id": "t1" }
 
-**响应（成功）**：
+**Response (Success)**:
 
 .. code-block:: json
 
@@ -151,7 +152,7 @@ API 接口概览
       "data": { "caption": "A cute cat on the sofa." }
     }
 
-**响应（失败）**：
+**Response (Failure)**:
 
 .. code-block:: json
 
@@ -161,80 +162,80 @@ API 接口概览
       "error": "ValueError: Invalid image format"
     }
 
-文件同步接口
-~~~~~~~~~~~~
+File Synchronization APIs
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- **获取哈希清单**：``GET /files/hashes/{run_id}``
+- **Get Hash Manifest**: ``GET /files/hashes/{run_id}``
 
-  返回运行目录中所有文件的相对路径与 SHA256 哈希，用于 Worker 判断需拉取哪些文件。
+  Returns a list of all files in the run directory with their relative paths and SHA256 hashes, used by Workers to determine which files to pull.
 
-- **拉取文件**：``POST /files/download/{run_id}``
+- **Download Files**: ``POST /files/download/{run_id}``
 
-  请求体为 JSON：``{"files": ["a.py", "data/input.jpg"]}``，返回 ZIP 流。
+  Request body is JSON: ``{"files": ["a.py", "data/input.jpg"]}``, returns a ZIP stream.
 
-- **推送文件**：``POST /files/upload/{run_id}``
+- **Upload Files**: ``POST /files/upload/{run_id}``
 
-  使用 ``multipart/form-data`` 上传，字段名为文件相对路径（如 ``output/result.png``）。
+  Uploads using ``multipart/form-data``, with field names as relative file paths (e.g., ``output/result.png``).
 
-工具管理接口
-~~~~~~~~~~~~
+Tool Management APIs
+~~~~~~~~~~~~~~~~~~~~
 
-- **列出工具**：``GET /tools``
+- **List Tools**: ``GET /tools``
 
-  返回所有已安装工具的元数据列表，每个条目包含 ``name, description, type, version, author`` 等字段。
+  Returns a list of metadata for all installed tools, including fields such as ``name``, ``description``, ``type``, ``version``, and ``author``.
 
-- **上传工具**：``POST /tools/upload``
+- **Upload Tool**: ``POST /tools/upload``
 
-  表单字段：
-  - ``tool_name``（必填）
+  Form fields:
+  - ``tool_name`` (required)
   - ``description``, ``tool_type``, ``version``, ``author``, ``usage_notes``
-  - ``tool_archive``：ZIP 格式的工具包
+  - ``tool_archive``: ZIP-formatted tool package
 
-  工具将被解压至 ``{project_root}/maze/model_cache/{tool_name}/``，并写入 ``metadata.json``。
+  The tool is extracted to ``{project_root}/maze/model_cache/{tool_name}/``, and metadata is written to ``metadata.json``.
 
-- **删除工具**：``DELETE /tools/{tool_name}``
+- **Delete Tool**: ``DELETE /tools/{tool_name}``
 
-  安全删除指定工具目录（路径校验防止目录遍历）。
+  Safely deletes the specified tool directory (with path validation to prevent directory traversal).
 
-运行管理接口
-~~~~~~~~~~~~
+Run Management APIs
+~~~~~~~~~~~~~~~~~~~
 
-- **获取运行摘要**：``GET /runs/{run_id}/summary``
+- **Get Run Summary**: ``GET /runs/{run_id}/summary``
 
-  返回该运行中所有任务的状态、名称、耗时等信息。
+  Returns status, name, execution time, and other information for all tasks in the run.
 
-- **下载运行产物**：``GET /runs/{run_id}/download``
+- **Download Run Artifacts**: ``GET /runs/{run_id}/download``
 
-  返回整个运行目录的 ZIP 压缩包，便于用户归档或调试。
+  Returns a ZIP archive of the entire run directory, useful for archiving or debugging.
 
-- **销毁运行**：``POST /runs/destroy``
+- **Destroy Run**: ``POST /runs/destroy``
 
-  请求体：``{"run_id": "..."}``。仅允许销毁**所有任务均已终止**的运行，否则返回 400。
+  Request body: ``{"run_id": "..."}``. Only runs where **all tasks have terminated** can be destroyed; otherwise, a 400 error is returned.
 
-- **取消任务**：``POST /runs/{run_id}/tasks/{task_id}/cancel``
+- **Cancel Task**: ``POST /runs/{run_id}/tasks/{task_id}/cancel``
 
-  将任务状态设为 ``CANCELLED``。若任务正在运行，尝试通过 Ray 进行“尽力取消”（best-effort）。
+  Sets the task status to ``CANCELLED``. If the task is currently running, attempts a "best-effort" cancellation via Ray.
 
-错误处理
---------
-
-- **400 Bad Request**：请求参数错误（如尝试销毁活跃运行）
-- **404 Not Found**：run_id 或 task_id 不存在
-- **409 Conflict**：资源冲突（如重复上传同名工具）
-- **500 Internal Server Error**：服务内部异常（含完整 traceback 日志）
-
-日志与可观测性
+Error Handling
 --------------
 
-- 使用 ``maze.utils.log_config.setup_logging(mode='server')`` 初始化结构化日志
-- 关键操作（提交、取消、上传、销毁）均有 INFO 级别日志
-- 异常路径记录完整堆栈（``exc_info=True``）
-- 日志输出至控制台及文件（取决于配置）
+- **400 Bad Request**: Invalid request parameters (e.g., attempting to destroy an active run)
+- **404 Not Found**: ``run_id`` or ``task_id`` does not exist
+- **409 Conflict**: Resource conflict (e.g., uploading a tool with a duplicate name)
+- **500 Internal Server Error**: Internal service exception (includes full traceback in logs)
 
-参见
-----
+Logging and Observability
+-------------------------
 
-- :ref:`maworker`：Worker 如何调用这些 API 进行文件同步
-- :ref:`mapath`：``TaskScheduler`` 与 ``dag_manager_daps`` 的调度逻辑
-- :ref:`maregister`：工具如何通过 ``task_registry`` 注册
-- ``DAGContextManager``：任务结果存储与查询的底层机制
+- Uses ``maze.utils.log_config.setup_logging(mode='server')`` to initialize structured logging
+- Key operations (submission, cancellation, upload, destruction) are logged at INFO level
+- Exception paths include full stack traces (``exc_info=True``)
+- Logs are output to both console and file (depending on configuration)
+
+See Also
+--------
+
+- :ref:`maworker`: How Workers use these APIs for file synchronization
+- :ref:`mapath`: Scheduling logic of ``TaskScheduler`` and ``dag_manager_daps``
+- :ref:`maregister`: How tools are registered via ``task_registry``
+- ``DAGContextManager``: Underlying mechanism for task result storage and retrieval

@@ -1,77 +1,77 @@
 .. _overview:
 
-项目概述
-========
+Project Overview
+================
 
-Maze 是一个专为**大语言模型代理**（LLM Agent）应用设计的**分布式执行框架**，致力于解决当前 LLM Agent 在高并发、复杂任务场景下的性能瓶颈与资源利用率低的问题。随着大模型能力的不断增强，智能代理正从单机实验走向生产级部署，对系统可扩展性、执行效率和运维能力提出了更高要求。Maze 通过创新的架构设计，实现了对复杂 Agent 工作流的高效调度与分布式执行。
+Maze is a **distributed execution framework** specifically designed for **Large Language Model Agents (LLM Agent)** applications. It aims to address the performance bottlenecks and low resource utilization issues faced by current LLM Agents in high-concurrency and complex task scenarios. As the capabilities of large models continue to grow, intelligent agents are transitioning from single-machine experiments to production-level deployments, placing higher demands on system scalability, execution efficiency, and operational capabilities. Maze achieves efficient scheduling and distributed execution of complex agent workflows through innovative architectural design.
 
-核心挑战
---------
+Core Challenges
+---------------
 
-传统的 LLM Agent 框架（如 LangChain、AutoGPT 等）通常采用“**代理级部署**”（Agent-Level Deployment）模式，即将整个 Agent 实例作为一个整体单元部署在单个计算节点上。这种模式存在以下严重问题：
+Traditional LLM Agent frameworks (such as LangChain, AutoGPT, etc.) typically adopt an "Agent-Level Deployment" model, where the entire Agent instance is deployed as a single unit on a single computing node. This approach has several critical issues:
 
-- **资源瓶颈**：一个 Agent 可能同时包含 CPU 密集型、GPU 密集型和 I/O 密集型任务，导致节点资源争抢，整体吞吐量受限。
-- **负载不均**：部分节点可能因运行复杂 Agent 而过载，而其他节点则处于空闲状态，造成资源浪费。
-- **扩展性差**：难以通过简单增加节点来线性提升系统处理能力。
+- **Resource Bottlenecks**: An Agent may simultaneously include CPU-intensive, GPU-intensive, and I/O-intensive tasks, leading to resource contention and limiting overall throughput.
+- **Uneven Load Distribution**: Some nodes might become overloaded due to running complex agents while others remain idle, resulting in wasted resources.
+- **Poor Scalability**: It's challenging to achieve linear performance improvement by merely adding more nodes.
 
-Maze 的解决方案
-----------------
+Maze Solutions
+--------------
 
-为应对上述挑战，Maze 提出了革命性的“**任务级部署**”（Task-Level Deployment）架构。其核心思想是将复杂的 Agent 工作流分解为一系列**细粒度的任务**（Task），并基于依赖关系构建有向无环图（DAG）。这些任务由中央调度器动态分发到集群中的不同计算节点上并行执行。
+To address these challenges, Maze introduces a revolutionary "Task-Level Deployment" architecture. Its core idea is to break down complex agent workflows into a series of fine-grained tasks based on dependency relationships to form Directed Acyclic Graphs (DAG). These tasks are dynamically distributed by a central scheduler to different computing nodes within the cluster for parallel execution.
 
-这一设计带来了三大核心优势：
+This design brings three significant advantages:
 
-1. **高效的负载均衡**  
-   Maze 能够感知每个任务的资源需求（如 CPU、GPU、内存）和每个节点的实时负载，实现精细化的任务调度。例如，将模型推理任务调度到 GPU 节点，将数据处理任务分配到 CPU 节点，从而最大化集群资源利用率。
+1. **Efficient Load Balancing**
+   Maze can perceive each task's resource requirements (CPU, GPU, memory) and real-time load conditions of each node, allowing for precise task scheduling. For example, it schedules model inference tasks to GPU nodes and data processing tasks to CPU nodes, maximizing cluster resource utilization.
 
-2. **强大的可扩展性**  
-   系统采用去中心化的执行模型，通过高效的任务分发机制，支持随着计算节点的增加实现近线性的性能提升。业务增长时，只需横向扩展 Worker 节点即可。
+2. **Strong Scalability**
+   The system adopts a decentralized execution model, supporting near-linear performance improvements with the addition of compute nodes through efficient task distribution mechanisms. Business growth can be accommodated simply by horizontally scaling Worker nodes.
 
-3. **卓越的易用性**  
-   用户无需成为分布式系统专家。通过简洁的 Python API 和 `@tool` 装饰器，开发者可以像编写单机程序一样定义任务和编排工作流，Maze 自动处理任务序列化、代码分发、依赖解析和远程执行。
+3. **Excellent Usability**
+   Users do not need to be experts in distributed systems. Through simple Python APIs and `@tool` decorators, developers can define tasks and orchestrate workflows just like writing standalone programs. Maze automatically handles task serialization, code distribution, dependency resolution, and remote execution.
 
-系统架构
---------
+System Architecture
+-------------------
 
-Maze 采用模块化设计，由四大核心组件协同工作，共同构成一个完整的分布式 Agent 管理平台：
+Maze features a modular design consisting of four core components that work together to form a complete distributed agent management platform:
 
 .. list-table::
    :widths: 20 80
    :header-rows: 1
 
-   * - **组件**
-     - **功能描述**
+   * - **Component**
+     - **Function Description**
 
-   * - **MaRegister (注册模块)**
-     - 负责定义 Agent 的工作流。用户通过 Python API 将任务函数注册到计算图中，并指定任务间的依赖关系（DAG）。
+   * - **MaRegister (Registration Module)**
+     - Responsible for defining the agent workflow. Users register task functions to the computation graph via Python APIs and specify dependencies between tasks (DAG).
 
-   * - **MaLearn (学习模块)**
-     - 一个在线学习模型，基于历史执行数据预测任务的复杂度（如执行时间），为调度器提供智能决策依据。实验表明，Maze 采用 XGBoost 结合增量学习的方式，在预测准确性和训练效率之间取得了最佳平衡。
+   * - **MaLearn (Learning Module)**
+     - An online learning model predicting task complexity (e.g., execution time) based on historical execution data, providing intelligent decision-making support for the scheduler. Experiments show that Maze achieves optimal balance between prediction accuracy and training efficiency using XGBoost combined with incremental learning.
 
-   * - **MaPath (路径/调度模块)**
-     - 框架的智能调度核心，实现了 **DAPS**（DAG-Aware Predictive Scheduling）算法。MaPath 综合考虑任务优先级、依赖关系、资源需求和数据亲和性，动态决定任务的执行位置。
+   * - **MaPath (Routing/Scheduling Module)**
+     - The smart scheduling core of the framework implements the DAPS (DAG-Aware Predictive Scheduling) algorithm. MaPath considers task priorities, dependencies, resource needs, and data affinity to dynamically decide task execution locations.
 
-   * - **MaWorker (工作模块)**
-     - 部署在每个计算节点上的执行引擎，负责接收调度指令、执行任务、管理运行环境并回报状态。
+   * - **MaWorker (Execution Module)**
+     - Deployed on each computing node as the execution engine, responsible for receiving dispatch instructions, executing tasks, managing runtime environments, and reporting status.
 
-运行模式
---------
+Operating Modes
+---------------
 
-Maze 支持两种运行模式，灵活适配开发与生产场景：
+Maze supports two operating modes to flexibly adapt to development and production scenarios:
 
-- **本地模式 (Local Mode)**  
-  无需启动中心服务或 Ray 集群，工作流在本地以独立线程执行，适用于快速开发和调试。
+- **Local Mode**
+  No need to start central services or Ray clusters; workflows execute locally in independent threads, suitable for quick development and debugging.
 
-- **服务器模式 (Server Mode)**  
-  基于 Ray 构建的分布式执行环境，支持多节点协同工作，适用于生产环境的高并发、大规模任务处理。
+- **Server Mode**
+  Built on a Ray-based distributed execution environment, supporting multi-node collaboration, ideal for high-concurrency, large-scale task processing in production environments.
 
-应用场景
---------
+Application Scenarios
+---------------------
 
-Maze 特别适用于以下场景：
+Maze is especially suitable for the following scenarios:
 
-- 多步骤、长周期的 LLM Agent 工作流（如自动化报告生成、智能客服流程）
-- 异构任务混合执行（如文本生成 + 图像识别 + 数据库查询）
-- 需要高可用、高并发的企业级 AI 应用
+- Multi-step, long-running LLM Agent workflows (e.g., automated report generation, intelligent customer service processes)
+- Heterogeneous task mixed execution (e.g., text generation + image recognition + database queries)
+- High availability, high concurrency enterprise AI applications
 
-通过 Maze，开发者可以轻松构建高性能、可扩展的分布式智能代理系统，释放大模型在真实生产环境中的全部潜力。
+Through Maze, developers can easily build high-performance, scalable distributed intelligent agent systems, unleashing the full potential of large models in real production environments.

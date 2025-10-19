@@ -1,21 +1,21 @@
-MazeClient Web API 接口文档
+MazeClient Web API Reference
 ============================
 
-MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管理会话、工作流、任务和运行实例。该 API 支持创建客户端会话、定义工作流、动态注册任务函数、提交执行、查询结果等完整生命周期操作。
+MazeClient provides a set of RESTful Web APIs based on FastAPI for remotely managing sessions, workflows, tasks, and execution instances. The API supports the complete lifecycle of operations, including creating client sessions, defining workflows, dynamically registering task functions, submitting executions, and querying results.
 
-所有接口均以 ``/api`` 为前缀，部分接口路径中包含动态参数（如 ``{session_id}``、``{workflow_id}`` 等）。
+All endpoints are prefixed with ``/api``. Some paths include dynamic parameters such as ``{session_id}``, ``{workflow_id}``, etc.
 
-健康检查与资源概览
---------------------
+Health Check and Resource Overview
+----------------------------------
 
 .. http:get:: /api/health
 
-   健康检查接口，返回服务状态和资源统计信息。
+   Health check endpoint that returns service status and resource statistics.
 
-   :statuscode 200: 服务正常
-   :statuscode 503: 服务不可用
+   :statuscode 200: Service is healthy
+   :statuscode 503: Service is unavailable
 
-   **响应示例**:
+   **Response Example**:
 
    .. code-block:: json
 
@@ -31,29 +31,29 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
 .. http:get:: /api/sessions
 
-   列出当前所有活跃会话及其资源概览。
+   Lists all currently active sessions and their resource overview.
 
-   :statuscode 200: 成功返回会话列表
+   :statuscode 200: Successfully returns the session list
 
-   **响应字段**:
+   **Response Fields**:
 
-   - ``session_id``: 会话唯一标识
-   - ``server_address``: 关联的 Maze 服务端地址
-   - ``workflows_count``: 该会话中创建工作流数量
-   - ``runs_count``: 当前运行实例数量
-   - ``tasks_count``: 已注册任务函数数量
+   - ``session_id``: Unique identifier of the session
+   - ``server_address``: Associated Maze server address
+   - ``workflows_count``: Number of workflows created in this session
+   - ``runs_count``: Number of current running instances
+   - ``tasks_count``: Number of registered task functions
 
-会话管理
---------
+Session Management
+------------------
 
 .. http:post:: /api/client/create
 
-   创建一个新的 MazeClient 会话。
+   Creates a new MazeClient session.
 
-   :statuscode 201: 会话创建成功
-   :statuscode 400: 请求参数错误
+   :statuscode 201: Session created successfully
+   :statuscode 400: Invalid request parameters
 
-   **请求体（JSON）**:
+   **Request Body (JSON)**:
 
    .. code-block:: json
 
@@ -61,29 +61,29 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
         "server_address": "127.0.0.1:6380"
       }
 
-   **响应**:
+   **Response**:
 
-   返回 ``session_id``，后续所有操作需通过该 ID 标识会话。
+   Returns the ``session_id``, which is required to identify the session in all subsequent operations.
 
 .. http:delete:: /api/{session_id}/cleanup
 
-   清理指定会话的所有资源（包括工作流、运行实例、任务函数等）。
+   Cleans up all resources associated with the specified session (including workflows, running instances, task functions, etc.).
 
-   :param string session_id: 会话唯一标识
-   :statuscode 200: 清理成功
-   :statuscode 404: 会话不存在
+   :param string session_id: Unique identifier of the session
+   :statuscode 200: Cleanup successful
+   :statuscode 404: Session not found
 
-工作流管理
-----------
+Workflow Management
+-------------------
 
 .. http:post:: /api/{session_id}/workflows/create
 
-   在指定会话中创建工作流。
+   Creates a workflow within the specified session.
 
-   :param string session_id: 会话唯一标识
-   :statuscode 201: 工作流创建成功
+   :param string session_id: Unique identifier of the session
+   :statuscode 201: Workflow created successfully
 
-   **请求体（JSON）**:
+   **Request Body (JSON)**:
 
    .. code-block:: json
 
@@ -91,36 +91,36 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
         "name": "my_workflow"
       }
 
-   **响应**:
+   **Response**:
 
-   返回 ``workflow_id``，用于后续任务添加和提交。
+   Returns the ``workflow_id``, used for subsequent task additions and submissions.
 
 .. http:get:: /api/{session_id}/workflows/{workflow_id}/structure
 
-   获取工作流的结构图（任务依赖关系）。
+   Retrieves the structure graph of the workflow (task dependency relationships).
 
-   :param string session_id: 会话唯一标识
-   :param string workflow_id: 工作流 ID
+   :param string session_id: Unique identifier of the session
+   :param string workflow_id: Workflow ID
 
 .. http:delete:: /api/{session_id}/workflows/{workflow_id}/tasks/{task_id}
 
-   从工作流中删除指定任务（强制删除，无视依赖）。
+   Deletes a specified task from the workflow (force delete, ignoring dependencies).
 
-   :param string session_id: 会话唯一标识
-   :param string workflow_id: 工作流 ID
-   :param string task_id: 任务 ID
+   :param string session_id: Unique identifier of the session
+   :param string workflow_id: Workflow ID
+   :param string task_id: Task ID
 
-任务管理
---------
+Task Management
+---------------
 
 .. http:post:: /api/{session_id}/workflows/{workflow_id}/tasks/add
 
-   向工作流添加一个任务。
+   Adds a task to the specified workflow.
 
-   :param string session_id: 会话唯一标识
-   :param string workflow_id: 工作流 ID
+   :param string session_id: Unique identifier of the session
+   :param string workflow_id: Workflow ID
 
-   **请求体（JSON）**:
+   **Request Body (JSON)**:
 
    .. code-block:: json
 
@@ -132,87 +132,87 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
         "resources": {"cpu": "2", "memory": "4G"}
       }
 
-   **说明**:
+   **Notes**:
 
-   - ``function_name`` 必须是已注册的任务函数（内置或动态注册）。
-   - ``file_paths`` 和 ``resources`` 为可选字段。
+   - ``function_name`` must refer to a previously registered task function (built-in or dynamically registered).
+   - ``file_paths`` and ``resources`` are optional fields.
 
 .. http:put:: /api/{session_id}/workflows/{workflow_id}/tasks/{task_id}
 
-   更新已有任务的配置（函数、输入、资源等）。
+   Updates the configuration of an existing task (function, inputs, resources, etc.).
 
 .. http:get:: /api/{session_id}/workflows/{workflow_id}/task/{task_id}/info
 
-   获取指定任务的详细信息。
+   Retrieves detailed information about a specific task.
 
 .. http:get:: /api/{session_id}/tasks/available
 
-   列出当前会话中所有可用的任务函数（含元数据，如描述、输入/输出参数等）。
+   Lists all available task functions in the current session (including metadata such as description, input/output parameters, etc.).
 
-动态任务注册
-------------
+Dynamic Task Registration
+-------------------------
 
 .. http:post:: /api/{session_id}/tasks/register
 
-   通过上传 Python 代码字符串动态注册任务函数。
+   Dynamically registers a task function by uploading a Python code string.
 
-   :param string session_id: 会话唯一标识
+   :param string session_id: Unique identifier of the session
 
-   **表单参数**:
+   **Form Parameters**:
 
-   - ``task_code``: 包含任务函数定义的 Python 代码（字符串）
-   - ``function_name``: 要注册的函数名
+   - ``task_code``: Python code string containing the task function definition
+   - ``function_name``: Name of the function to register
 
-   **要求**:
+   **Requirements**:
 
-   函数必须使用 ``@task`` 装饰器标记，否则无法被识别为有效任务。
+   The function must be decorated with ``@task``; otherwise, it will not be recognized as a valid task.
 
-任务包上传
-----------
+Task Package Upload
+-------------------
 
 .. http:post:: /api/{session_id}/tasks/upload
 
-   上传 ZIP 格式的任务包（包含任务代码、依赖、配置等）。
+   Uploads a ZIP-formatted task package (containing code, dependencies, configuration, etc.).
 
-   :param string session_id: 会话唯一标识
+   :param string session_id: Unique identifier of the session
 
-   **表单参数**:
+   **Form Parameters**:
 
-   - ``task_archive``: ZIP 文件（File）
-   - ``description``: 任务描述
-   - ``task_type``: 任务类型（如 "llm", "data_processing"）
-   - ``version``: 版本号（默认 "1.0.0"）
-   - ``author``: 作者（默认 "unknown"）
+   - ``task_archive``: ZIP file (File)
+   - ``description``: Task description
+   - ``task_type``: Task type (e.g., "llm", "data_processing")
+   - ``version``: Version number (default "1.0.0")
+   - ``author``: Author name (default "unknown")
 
-工作流执行与结果查询
-----------------------
+Workflow Execution and Result Query
+-----------------------------------
 
 .. http:post:: /api/{session_id}/workflows/{workflow_id}/submit
 
-   提交工作流执行。
+   Submits a workflow for execution.
 
-   :param string session_id: 会话唯一标识
-   :param string workflow_id: 工作流 ID
+   :param string session_id: Unique identifier of the session
+   :param string workflow_id: Workflow ID
 
-   **请求体（JSON）**:
+   **Request Body (JSON)**:
 
    .. code-block:: json
 
       {
-        "mode": "server"  // 可选值："server" 或 "local"
+        "mode": "server"  // Possible values: "server" or "local"
       }
 
-   **响应**:
+   **Response**:
 
-   返回 ``run_id``，用于后续查询或控制。
+   Returns the ``run_id``, used for subsequent querying or control.
 
 .. http:post:: /api/{session_id}/tasks/result
 
-   获取指定任务的执行结果（支持同步等待）。
+   Retrieves the execution result of a specified task (supports synchronous waiting).
 
-   :param string session_id: 会话唯一标识
+   :param string session_id: Unique identifier of the session
 
-   **请求体（JSON）**:
+   **Request Body (JSON)**:
 
    .. code-block:: json
 
@@ -226,33 +226,33 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
 
 .. http:post:: /api/{session_id}/tasks/result/async
 
-   异步获取任务结果（基于 asyncio 轮询）。
+   Asynchronously retrieves task results (based on asyncio polling).
 
 .. http:post:: /api/{session_id}/tasks/cancel
 
-   取消指定任务的执行。
+   Cancels the execution of a specified task.
 
 .. http:get:: /api/{session_id}/runs/{run_id}/summary
 
-   获取整个运行实例的摘要信息（各任务状态、耗时等）。
+   Retrieves a summary of the entire run instance (task statuses, execution times, etc.).
 
 .. http:post:: /api/{session_id}/runs/{run_id}/destroy
 
-   销毁运行实例，释放资源。
+   Destroys the run instance and releases associated resources.
 
-前端与跨域支持
---------------
+Frontend and CORS Support
+-------------------------
 
 .. http:get:: /
 
-   返回内置的 Web 前端页面（位于 ``frontend/index.html``），可用于可视化操作。
+   Serves the built-in web frontend (located at ``frontend/index.html``), which can be used for visual operations.
 
-**CORS 支持**：API 已启用 CORS，允许任意来源跨域访问，便于 Web 前端集成。
+**CORS Support**: The API has CORS enabled, allowing cross-origin requests from any origin, facilitating integration with web frontends.
 
-错误处理
---------
+Error Handling
+--------------
 
-所有接口在出错时返回标准 HTTP 错误码（如 404、500）及 JSON 格式的错误详情：
+All endpoints return standard HTTP error codes (e.g., 404, 500) and a JSON-formatted error detail upon failure:
 
 .. code-block:: json
 
@@ -260,7 +260,7 @@ MazeClient 提供了一套基于 FastAPI 的 RESTful Web API，用于远程管�
      "detail": "Failed to create client: Connection refused"
    }
 
-日志记录
---------
+Logging
+-------
 
-服务启动时自动加载内置任务函数（来自同目录下的 ``task.py``），并在日志中输出加载信息。
+Upon startup, the service automatically loads built-in task functions (from ``task.py`` in the same directory) and logs the loading information.

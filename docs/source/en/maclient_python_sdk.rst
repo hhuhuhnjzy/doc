@@ -1,106 +1,106 @@
 .. _maclient_python_sdk:
 
-maclient_python_sdk：Maze Python 客户端 SDK
+maclient_python_sdk: Maze Python Client SDK
 ==========================================
 
-``maclient_python_sdk`` 是 Maze 框架的 **官方 Python 客户端库**，用于与 ``maserver_api`` 服务交互。它封装了底层 HTTP 通信、序列化、文件打包等细节，让用户能以 **简洁、声明式** 的方式：
+``maclient_python_sdk`` is the **official Python client library** for the Maze framework, designed to interact with the ``maserver_api`` service. It abstracts away low-level details such as HTTP communication, serialization, and file packaging, enabling users to work in a **clean, declarative** manner to:
 
-- 构建有向无环图（DAG）工作流
-- 提交工作流到远程服务端
-- 实时查询任务状态与结果
-- 下载运行产物
-- 管理自定义工具
+- Construct directed acyclic graph (DAG) workflows
+- Submit workflows to a remote server
+- Query task status and results in real time
+- Download execution artifacts
+- Manage custom tools
 
-该 SDK 与服务端的 DAG 定义（如 ``_graph_builder.py`` 中的 ``DAG`` 类）**语义对齐**，但运行在用户本地，不依赖 Ray。
+This SDK is **semantically aligned** with the server-side DAG definition (e.g., the ``DAG`` class in ``_graph_builder.py``), but runs on the user's local machine and does **not depend on Ray**.
 
-安装
-----
+Installation
+------------
 
 .. code-block:: bash
 
     pip install maclient
 
-快速入门
---------
+Quick Start
+-----------
 
-以下是一个完整示例：构建一个“图像描述 → 文本摘要”两阶段工作流，并提交执行。
+The following is a complete example: building a two-stage workflow ("image captioning → text summarization") and submitting it for execution.
 
 .. code-block:: python
 
     from maclient import MazeClient, task
 
-    # 1. 连接服务端
+    # 1. Connect to the server
     client = MazeClient(server_url="http://localhost:8000")
 
-    # 2. 定义任务函数（必须用 @task 装饰）
+    # 2. Define task functions (must be decorated with @task)
     @task
     def image_caption(image_path: str) -> dict:
-        """生成图像描述"""
-        # 实际逻辑由服务端执行
+        """Generate image description"""
+        # Actual logic is executed on the server
         pass
 
     @task
     def summarize(text: str) -> dict:
-        """对文本进行摘要"""
+        """Summarize the input text"""
         pass
 
-    # 3. 构建工作流
+    # 3. Build the workflow
     dag = client.new_dag(name="image_analysis")
 
-    # 添加第一个任务（无依赖）
+    # Add first task (no dependencies)
     task1_id = dag.add_task(
         func=image_caption,
-        inputs={"image_path": "/input/cat.jpg"}  # 静态输入
+        inputs={"image_path": "/input/cat.jpg"}  # Static input
     )
 
-    # 添加第二个任务（依赖 task1 的输出）
+    # Add second task (depends on output of task1)
     task2_id = dag.add_task(
         func=summarize,
-        inputs={"text": f"{task1_id}.output.caption"}  # 动态依赖
+        inputs={"text": f"{task1_id}.output.caption"}  # Dynamic dependency
     )
 
-    # 4. 提交并等待结果
+    # 4. Submit and wait for result
     run_id = client.submit_dag(dag)
     print(f"Workflow submitted with run_id: {run_id}")
 
-    # 5. 轮询直到完成
+    # 5. Poll until completion
     while not client.is_run_finished(run_id):
         time.sleep(2)
 
-    # 6. 获取最终结果
+    # 6. Retrieve final result
     result = client.get_task_result(run_id, task2_id)
     print("Summary:", result["data"]["summary"])
 
-核心概念
---------
+Core Concepts
+-------------
 
-任务（Task）
-~~~~~~~~~~
+Task
+~~~~
 
-- 任务是工作流的基本执行单元。
-- 必须使用 ``@task`` 装饰器定义，该装饰器会注入元数据（名称、输入/输出 schema、资源需求等）。
-- 任务函数**仅定义接口**，实际执行在服务端 Worker 上进行。
-- 输入参数来源有三种：
-  1. **静态值**：如 ``inputs={"param": "hello"}``
-  2. **上游任务输出**：如 ``inputs={"param": "task_abc.output.key"}`
-  3. **自动注入**：如模型路径、API 密钥（由服务端配置决定）
+- A task is the fundamental execution unit in a workflow.
+- Must be defined with the ``@task`` decorator, which injects metadata (name, input/output schema, resource requirements, etc.).
+- The task function **defines only the interface**; actual execution occurs on a server-side Worker.
+- Input sources can be:
+  1. **Static values**: e.g., ``inputs={"param": "hello"}``
+  2. **Output from upstream tasks**: e.g., ``inputs={"param": "task_abc.output.key"}``
+  3. **Automatically injected**: e.g., model paths, API keys (determined by server configuration)
 
-工作流（DAG）
-~~~~~~~~~~~
+Workflow (DAG)
+~~~~~~~~~~~~~~
 
-- 由多个任务及其依赖关系构成的有向无环图。
-- SDK 中的 ``DAG`` 对象负责构建图结构，但**不执行**。
-- 提交时，整个 DAG 会被序列化（含函数字节码）并发送至服务端。
+- A directed acyclic graph composed of tasks and their dependencies.
+- The ``DAG`` object in the SDK is responsible for building the graph structure but **does not execute it**.
+- Upon submission, the entire DAG (including function bytecode) is serialized and sent to the server.
 
-运行（Run）
-~~~~~~~~~
+Run
+~~~
 
-- 每次提交 DAG 会生成一个唯一的 ``run_id``。
-- 一个 Run 包含：DAG 实例、运行沙箱目录、任务状态记录、产出文件。
-- Run 是生命周期管理的基本单位（可查询、下载、销毁）。
+- Each DAG submission generates a unique ``run_id``.
+- A Run includes: the DAG instance, a sandbox directory, task status records, and output files.
+- A Run is the basic unit for lifecycle management (can be queried, downloaded, or destroyed).
 
-API 参考
---------
+API Reference
+-------------
 
 MazeClient
 ~~~~~~~~~~
@@ -111,61 +111,61 @@ MazeClient
 
     .. automethod:: __init__(self, server_url: str)
 
-        初始化客户端。
+        Initialize the client.
 
-        :param server_url: 服务端基础 URL，如 ``"http://localhost:8000"``
+        :param server_url: Base URL of the server, e.g., ``"http://localhost:8000"``
 
     .. automethod:: new_dag(self, name: str = "") -> DAG
 
-        创建一个新的空工作流对象。
+        Create a new empty workflow object.
 
-        :param name: 工作流名称（可选）
-        :return: ``DAG`` 实例
+        :param name: Name of the workflow (optional)
+        :return: A ``DAG`` instance
 
     .. automethod:: submit_dag(self, dag: DAG, project_files: Optional[List[str]] = None) -> str
 
-        将 DAG 提交到服务端执行。
+        Submit the DAG to the server for execution.
 
-        :param dag: 已构建好的 ``DAG`` 对象
-        :param project_files: 需要一并上传的本地文件路径列表（如自定义模块）
-        :return: 生成的 ``run_id``
+        :param dag: The constructed ``DAG`` object
+        :param project_files: List of local file paths to upload (e.g., custom modules)
+        :return: The generated ``run_id``
 
     .. automethod:: get_task_result(self, run_id: str, task_id: str) -> dict
 
-        获取指定任务的执行结果。
+        Retrieve the execution result of a specified task.
 
-        返回字典包含：
+        Returns a dictionary containing:
         - ``status``: ``"success"``
         - ``task_status``: ``"pending" | "running" | "finished" | "failed" | "CANCELLED"``
-        - ``data``: （仅当 finished）任务返回值
-        - ``error``: （仅当 failed）错误信息
+        - ``data``: (only if finished) the return value of the task
+        - ``error``: (only if failed) error message
 
     .. automethod:: is_run_finished(self, run_id: str) -> bool
 
-        检查指定运行是否已结束（所有任务处于终态）。
+        Check if the specified run has finished (all tasks in terminal state).
 
     .. automethod:: download_run(self, run_id: str, output_dir: str)
 
-        下载整个运行目录到本地。
+        Download the entire run directory to the local machine.
 
-        :param run_id: 运行 ID
-        :param output_dir: 本地保存路径
+        :param run_id: The run ID
+        :param output_dir: Local destination path
 
     .. automethod:: destroy_run(self, run_id: str)
 
-        请求服务端清理该运行的所有产物（仅当运行已结束）。
+        Request the server to clean up all artifacts of this run (only if the run has finished).
 
     .. automethod:: list_tools(self) -> List[dict]
 
-        获取服务端所有已注册工具的元数据列表。
+        Retrieve a list of metadata for all registered tools on the server.
 
     .. automethod:: upload_tool(self, name: str, archive_path: str, **metadata)
 
-        上传新工具到服务端。
+        Upload a new tool to the server.
 
-        :param name: 工具名称
-        :param archive_path: ZIP 格式的工具包路径
-        :param metadata: 工具元数据（description, type, version, author, usage_notes）
+        :param name: Name of the tool
+        :param archive_path: Path to the tool package in ZIP format
+        :param metadata: Tool metadata (description, type, version, author, usage_notes)
 
 DAG
 ~~~
@@ -176,30 +176,30 @@ DAG
 
     .. automethod:: add_task(self, func: Callable, task_name: Optional[str] = None, inputs: Optional[Dict] = None, resources: Optional[Dict] = None) -> str
 
-        向工作流中添加一个任务节点。
+        Add a task node to the workflow.
 
-        :param func: 用 ``@task`` 装饰的函数
-        :param task_name: 任务别名（可选）
-        :param inputs: 输入参数映射字典
-        :param resources: 资源需求（如 GPU 数量）
-        :return: 生成的唯一 ``task_id``
+        :param func: A function decorated with ``@task``
+        :param task_name: Task alias (optional)
+        :param inputs: Dictionary mapping input parameters
+        :param resources: Resource requirements (e.g., number of GPUs)
+        :return: The generated unique ``task_id``
 
     .. automethod:: visualize(self)
 
-        在本地可视化当前工作流结构（需安装 matplotlib）。
+        Visualize the current workflow structure locally (requires matplotlib).
 
     .. automethod:: show_structure(self)
 
-        在终端打印工作流的文本结构。
+        Print the workflow structure as text in the terminal.
 
-@task 装饰器
-~~~~~~~~~~~
+@task Decorator
+~~~~~~~~~~~~~~~
 
 .. autofunction:: maclient.task
 
-    用于装饰任务函数，使其能被 Maze 框架识别。
+    Decorates a function to make it recognizable by the Maze framework.
 
-    支持通过参数指定元数据：
+    Supports specifying metadata via parameters:
 
     .. code-block:: python
 
@@ -212,18 +212,18 @@ DAG
         def process_image(image_path: str) -> dict:
             pass
 
-    装饰器会自动解析函数签名，生成输入/输出 schema，并注入到函数对象的 ``_task_meta`` 属性中。
+    The decorator automatically parses the function signature to generate input/output schemas and injects them into the function's ``_task_meta`` attribute.
 
-异常处理
---------
+Error Handling
+--------------
 
-SDK 在遇到服务端错误时会抛出标准异常：
+The SDK raises standard exceptions when server errors occur:
 
-- ``maclient.exceptions.MazeAPIError``：通用 API 错误（如 500）
-- ``maclient.exceptions.MazeNotFoundError``：资源未找到（404）
-- ``maclient.exceptions.MazeConflictError``：资源冲突（409）
+- ``maclient.exceptions.MazeAPIError``: Generic API error (e.g., 500)
+- ``maclient.exceptions.MazeNotFoundError``: Resource not found (404)
+- ``maclient.exceptions.MazeConflictError``: Resource conflict (409)
 
-建议在关键操作中使用 try-except 捕获：
+It is recommended to use try-except blocks for critical operations:
 
 .. code-block:: python
 
@@ -234,18 +234,18 @@ SDK 在遇到服务端错误时会抛出标准异常：
     except MazeNotFoundError as e:
         print("Run or task not found:", e)
 
-设计原则
+Design Principles
+-----------------
+
+1. **Local Construction, Remote Execution**: Users build DAGs locally, but all computation occurs on the server.
+2. **Function as Task**: Task logic is defined as Python functions, making it clear and intuitive.
+3. **Explicit Dependency Declaration**: Data dependencies are expressed via string references (e.g., ``"task_id.output.key"``).
+4. **Strong Server Consistency**: The SDK's DAG model is fully compatible with the server-side ``ExecuteDAG``.
+5. **Zero Ray Dependency**: The client does not require Ray to be installed or connected.
+
+See Also
 --------
 
-1. **本地构建，远程执行**：用户在本地构建 DAG，但所有计算在服务端完成。
-2. **函数即任务**：任务逻辑以 Python 函数形式定义，清晰直观。
-3. **依赖显式声明**：通过字符串引用（如 ``"task_id.output.key"``）表达数据依赖。
-4. **与服务端强一致**：SDK 的 DAG 模型与服务端 ``ExecuteDAG`` 完全兼容。
-5. **零 Ray 依赖**：客户端无需安装或连接 Ray。
-
-参见
-----
-
-- :ref:`maserver_api`：服务端 API 详细规范
-- :ref:`maworker`：Worker 如何执行这些任务
-- ``@task`` 装饰器的完整 schema 定义（位于 ``maze.core.register``）
+- :ref:`maserver_api`: Detailed specification of the server API
+- :ref:`maworker`: How Workers execute these tasks
+- Full schema definition of the ``@task`` decorator (located in ``maze.core.register``)

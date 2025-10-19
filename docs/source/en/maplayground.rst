@@ -13,7 +13,119 @@ Maze Workflow Playground 是一个基于 Web 的零代码可视化工作流编�
 - **多会话隔离**：每个浏览器会话对应独立的 MazeClient 实例，互不干扰。
 - **内置任务库**：自动加载服务端预定义任务，开箱即用。
 
-界面概览
+界面概览.. _playground:
+
+Maze Workflow Playground — Visual Interface
+===========================================
+
+Maze Workflow Playground is a web-based, zero-code visual workflow orchestration platform built on top of :doc:`maclient_api`. It enables users to create sessions, register tasks, design workflows, submit executions, and view results in real time—all without writing any code—making it easy to build and manage complex task pipelines through a graphical interface.
+
+Core Features
+-------------
+
+- **Zero-Code Operation**: Define tasks and dependencies via drag-and-drop or form-based configuration.
+- **Dynamic Task Registration**: Write Python task functions inline and register them instantly for use.
+- **Task Package Upload**: Upload ZIP-formatted task packages to extend system capabilities.
+- **Real-Time Execution Monitoring**: After submission, view task status, logs, and output results.
+- **Multi-Session Isolation**: Each browser session corresponds to an independent MazeClient instance, ensuring complete isolation.
+- **Built-in Task Library**: Automatically loads pre-defined server-side tasks for immediate use.
+
+Interface Overview
+------------------
+
+Upon opening the Playground homepage (typically at ``http://<host>:8000/``), users will see the following main functional areas:
+
+1. **Session Management**
+   - Click "Create Session" to connect to a specified Maze server (default: ``127.0.0.1:6380``).
+   - Each session generates a unique ``Session ID``, serving as the context identifier for subsequent operations.
+
+2. **Task Management**
+   - **Write Task**: Enter a Python function with the ``@task`` decorator in the code editor, then click "Register Task" to make it available in the current session.
+   - **Upload Task**: Upload a ZIP package containing task definitions; the system automatically parses and registers them.
+   - **Available Tasks List**: Displays all callable tasks in the current session (including built-in and user-registered), showing name, description, and input/output parameters.
+
+3. **Workflow Designer**
+   - **Create New Workflow**: Name the workflow and enter the design interface.
+   - **Add Task Node**: Select a task from "Available Tasks", fill in input parameters and resource requirements, and add it as a node in the workflow.
+   - **Dependency Configuration** (Future Support): Current version supports linear execution; explicit dependency wiring will be supported in future releases.
+   - **Edit/Delete Tasks**: Modify or remove already-added tasks.
+
+4. **Execution & Monitoring**
+   - **Set Input Parameters**: Provide initial inputs for the head node (entry task) of the workflow.
+   - **Submit Execution**: Choose an execution mode (``server`` or ``local``) and submit. The system returns a ``Run ID``.
+   - **Run Instance List**: Displays all execution records in the current session. Click to view results, cancel tasks, or destroy instances.
+   - **Result Viewing**: Click on a specific task to view its output, status, and execution logs (if supported by the backend).
+
+Typical Usage Flow
+------------------
+
+1. **Create a Session**
+   Enter the Maze server address and click "Create Session" to obtain a Session ID.
+
+2. **Register or Select a Task**
+   - If tasks are already available, select directly from "Available Tasks";
+   - To define custom logic, click "Write Task" and register a function like:
+
+     .. code-block:: python
+
+        from maze.library.tasks.definitions import task
+
+        @task(
+            name="hello_task",
+            description="A greeting task",
+            task_type='cpu',
+            input_parameters={"properties": {"name": {"type": "string"}}},
+            output_parameters={"properties": {"greeting": {"type": "string"}}}
+        )
+        def hello_task(name: str) -> str:
+            return f"Hello, {name}!"
+
+3. **Create a Workflow**
+   Click "Create New Workflow", and enter a name (e.g., ``GreetingFlow``).
+
+4. **Add a Task**
+   Select ``hello_task`` from the task list, set input parameters to ``{"name": "Alice"}``, and click "Add Task".
+
+5. **Submit for Execution**
+   Click "Submit Execution", choose the execution mode (recommended: ``server``), and the system begins running the workflow.
+
+6. **View Results**
+   In the "Run Instances" list, locate the corresponding Run ID. Click on the task node to see the output: ``{"greeting": "Hello, Alice!"}``.
+
+Technical Architecture
+----------------------
+
+- **Frontend**: Pure HTML + JavaScript (no framework dependencies), lightweight and minimal.
+- **Backend**: Fully relies on RESTful APIs provided by :doc:`maclient_api`.
+- **Communication**: Directly calls ``/api/...`` endpoints from the browser to manage the full lifecycle of sessions, workflows, and tasks.
+- **Security**: Sessions are fully isolated. No persistent storage is used; resources are either manually cleaned or automatically reclaimed upon timeout.
+
+Use Cases
+---------
+
+- Rapidly validate task logic
+- Enable non-developers to orchestrate automation workflows
+- Teaching demonstrations and prototyping
+- Debugging execution behavior of complex workflows
+
+Access Method
+-------------
+
+After starting the MazeClient web service, the Playground can be accessed by default at:
+
+.. code-block:: text
+
+   http://localhost:8000/
+
+> 💡 Tip: Ensure the Maze server (e.g., Redis + Maze Server) is running at the specified address; otherwise, session creation will fail.
+
+Future Roadmap
+--------------
+
+- Support data passing and dependency wiring between tasks (DAG visualization)
+- Add real-time streaming output of task execution logs
+- Provide workflow template saving and reuse functionality
+- Integrate a task marketplace for sharing and discovering tasks
 --------
 
 打开 Playground 首页（通常为 ``http://<host>:8000/``）后，用户将看到以下主要功能区域：

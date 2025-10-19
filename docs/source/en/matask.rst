@@ -1,223 +1,225 @@
-Maze 内置任务库（Built-in Tasks）
-================================
+.. _built_in_tasks:
 
-Maze 框架提供了一套丰富的**预定义任务（Built-in Tasks）**，覆盖文件 I/O、PDF 处理、OCR 识别、文本分析、工作流控制等多个场景。这些任务均以 ``@task`` 装饰器注册，可直接在 :doc:`maclient_api` 或 :doc:`maplayground` 中调用，无需额外开发。
+Maze Built-in Task Library
+==========================
 
-所有内置任务均位于 ``maze.library.tasks`` 模块下，按功能划分为多个子模块，包括：
+Maze provides a rich set of **predefined tasks (Built-in Tasks)** covering common scenarios such as file I/O, PDF processing, OCR, text analysis, and workflow control. These tasks are registered using the ``@task`` decorator and can be directly invoked in :doc:`maclient_api` or :doc:`maplayground` without additional development.
 
-- ``io_tasks``：文件与数据加载
-- ``pdf_tasks``：PDF 文档处理
-- ``image_tasks``：图像与 OCR 处理
-- ``llm_tasks``：大语言模型交互
-- ``control_tasks``：流程控制与聚合
+All built-in tasks reside in the ``maze.library.tasks`` module and are organized into submodules by functionality:
 
-以下按功能分类详细介绍常用任务。
+- ``io_tasks``: File and data loading
+- ``pdf_tasks``: PDF document processing
+- ``image_tasks``: Image and OCR processing
+- ``llm_tasks``: Large language model interaction
+- ``control_tasks``: Flow control and aggregation
 
-文件与数据加载任务
-------------------
+Below is a detailed overview of commonly used tasks, grouped by function.
+
+File and Data Loading Tasks
+---------------------------
 
 .. _task-load_pdf:
 
 ``load_pdf``
 ~~~~~~~~~~~~
-- **描述**：从本地路径加载 PDF 文件，返回其二进制内容。
-- **输入**：
-  - ``pdf_path`` (str)：PDF 文件的完整路径。
-- **输出**：
-  - ``pdf_content`` (bytes)：PDF 的二进制内容。
-- **用途**：作为 PDF 处理流水线的起点，将文件读入内存供后续任务使用。
+- **Description**: Loads a PDF file from a local path and returns its binary content.
+- **Inputs**:
+  - ``pdf_path`` (str): Full path to the PDF file.
+- **Outputs**:
+  - ``pdf_content`` (bytes): Binary content of the PDF.
+- **Use Case**: Serves as the starting point for PDF processing pipelines, loading the file into memory for downstream tasks.
 
 .. _task-count_lines:
 
 ``count_lines``
 ~~~~~~~~~~~~~~~
-- **描述**：计算上传的第一个文本文件的行数。
-- **输入**：
-  - ``supplementary_files`` (dict)：由框架自动注入的文件字典。
-- **输出**：
-  - ``line_count`` (int)：文件总行数。
-- **用途**：快速验证文件内容规模，常用于数据预检。
+- **Description**: Counts the number of lines in the first uploaded text file.
+- **Inputs**:
+  - ``supplementary_files`` (dict): File dictionary automatically injected by the framework.
+- **Outputs**:
+  - ``line_count`` (int): Total number of lines in the file.
+- **Use Case**: Quickly validates data scale; commonly used in data pre-checks.
 
-PDF 文本与结构提取任务
------------------------
+PDF Text and Structure Extraction Tasks
+---------------------------------------
 
 .. _task-extract_text_and_tables_from_native_pdf:
 
 ``extract_text_and_tables_from_native_pdf``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：从**原生（非扫描）PDF**中快速提取文本和结构化表格。
-- **输入**：
-  - ``pdf_content`` (bytes)：PDF 二进制内容。
-- **输出**：
-  - ``extracted_text`` (str)：格式化后的文本与表格内容，按页分隔。
-- **限制**：**不适用于扫描件或图片型 PDF**。
-- **依赖**：``pdfplumber``
-- **用途**：高效解析可选中文本的 PDF，如电子书、报告、论文等。
+- **Description**: Rapidly extracts text and structured tables from **native (non-scanned) PDFs**.
+- **Inputs**:
+  - ``pdf_content`` (bytes): Binary content of the PDF.
+- **Outputs**:
+  - ``extracted_text`` (str): Formatted text and table content, separated by page.
+- **Limitation**: **Not suitable for scanned or image-based PDFs**.
+- **Dependency**: ``pdfplumber``
+- **Use Case**: Efficiently parses selectable-text PDFs such as e-books, reports, and academic papers.
 
-PDF 图像化与 OCR 任务
----------------------
+PDF Rasterization and OCR Tasks
+-------------------------------
 
 .. _task-extract_text_from_pdf_range:
 
 ``extract_text_from_pdf_range``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：对 PDF 指定页码范围进行**图像渲染 + OCR 识别**，适用于扫描件。
-- **输入**：
-  - ``pdf_content`` (bytes)：PDF 二进制内容。
-  - ``page_range`` (list[int])：起止页码（如 ``[3, 5]``，页码从 1 开始）。
-- **输出**：
-  - ``extracted_text`` (str)：OCR 识别出的文本，按页标注。
-- **依赖**：``PyMuPDF (fitz)`` + ``EasyOCR``（支持中英文）
-- **资源需求**：需 GPU（``gpu_mem=4096``）
-- **用途**：处理扫描版 PDF、图片型文档、无法复制文本的 PDF。
+- **Description**: Renders specified page ranges of a PDF to images and performs **OCR recognition**, suitable for scanned documents.
+- **Inputs**:
+  - ``pdf_content`` (bytes): Binary content of the PDF.
+  - ``page_range`` (list[int]): Start and end page numbers (e.g., ``[3, 5]``, 1-indexed).
+- **Outputs**:
+  - ``extracted_text`` (str): OCR-recognized text, annotated by page.
+- **Dependencies**: ``PyMuPDF (fitz)`` + ``EasyOCR`` (supports Chinese and English)
+- **Resource Requirement**: Requires GPU (``gpu_mem=4096``)
+- **Use Case**: Processes scanned PDFs, image-only documents, or PDFs with non-copyable text.
 
 .. _task-ocr_memory_chunk:
 
 ``ocr_memory_chunk``
 ~~~~~~~~~~~~~~~~~~~~
-- **描述**：对内存中的一个小 PDF 块（如 5 页）执行 OCR，返回每页文本列表。
-- **输入**：
-  - ``pdf_chunk_content`` (bytes)：小 PDF 块的二进制内容。
-- **输出**：
-  - ``all_text_parts`` (List[str])：每页 OCR 结果组成的列表。
-- **用途**：作为并行 OCR 流水线的原子单元，支持大规模文档分块处理。
+- **Description**: Performs OCR on a small in-memory PDF chunk (e.g., 5 pages) and returns a list of text per page.
+- **Inputs**:
+  - ``pdf_chunk_content`` (bytes): Binary content of a small PDF chunk.
+- **Outputs**:
+  - ``all_text_parts`` (List[str]): List of OCR results, one per page.
+- **Use Case**: Atomic unit in a parallel OCR pipeline; enables chunked processing of large documents.
 
-文档结构与工作流控制任务
--------------------------
+Document Structure and Workflow Control Tasks
+---------------------------------------------
 
 .. _task-calculate_page_offset:
 
 ``calculate_page_offset``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：根据目录逻辑页码与第一章实际物理页码，计算**页码偏移量**。
-- **输入**：
-  - ``logical_toc_with_ranges`` (dict)：LLM 解析出的带页码范围的目录。
-  - ``physical_page_of_chapter_1`` (int)：第一章实际起始页码。
-- **输出**：
-  - ``page_offset`` (int)：偏移量（物理页 = 逻辑页 + offset）。
-- **用途**：解决 PDF 目录页码与实际内容页码不一致的问题，为章节切分提供依据。
+- **Description**: Calculates the **page offset** based on the logical TOC page numbers and the actual physical starting page of Chapter 1.
+- **Inputs**:
+  - ``logical_toc_with_ranges`` (dict): Table of contents with page ranges, parsed by an LLM.
+  - ``physical_page_of_chapter_1`` (int): Actual starting page number of Chapter 1.
+- **Outputs**:
+  - ``page_offset`` (int): Offset value (physical page = logical page + offset).
+- **Use Case**: Resolves mismatches between TOC page numbers and actual content pages; provides basis for chapter segmentation.
 
 .. _task-split_pdf_by_chapters:
 
 ``split_pdf_by_chapters``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：根据结构化目录和页码偏移，将 PDF **按章节切分为多个独立 PDF 文件**。
-- **输入**：
+- **Description**: **Splits a PDF into multiple independent files by chapter** based on a structured TOC and page offset.
+- **Inputs**:
   - ``pdf_content`` (bytes)
   - ``logical_toc_with_ranges`` (dict)
   - ``page_offset`` (int)
   - ``physical_page_of_chapter_1`` (int)
   - ``output_directory`` (str)
-- **输出**：
-  - ``pdf_chunk_paths`` (List[str])：各章节 PDF 文件的保存路径。
-- **用途**：实现书籍、报告的自动化章节拆分，便于后续分章节处理。
+- **Outputs**:
+  - ``pdf_chunk_paths`` (List[str]): File paths of saved chapter PDFs.
+- **Use Case**: Automates chapter splitting for books or reports, enabling per-chapter downstream processing.
 
 .. _task-scatter_chapter_in_memory:
 
 ``scatter_chapter_in_memory``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：将单个章节 PDF 在内存中按页数切分为多个小块（二进制流）。
-- **输入**：
+- **Description**: Splits a single chapter PDF into multiple small chunks (binary streams) in memory based on page count.
+- **Inputs**:
   - ``chapter_pdf_content`` (bytes)
-  - ``pages_per_chunk`` (int, 默认 5)
-- **输出**：
-  - ``page_chunk_contents`` (List[bytes])：小 PDF 块的二进制列表。
-- **用途**：为并行 OCR 或摘要生成提供分块输入。
+  - ``pages_per_chunk`` (int, default 5)
+- **Outputs**:
+  - ``page_chunk_contents`` (List[bytes]): List of binary PDF chunks.
+- **Use Case**: Provides chunked input for parallel OCR or summarization tasks.
 
-文本聚合与摘要准备任务
------------------------
+Text Aggregation and Summary Preparation Tasks
+----------------------------------------------
 
 .. _task-gather_ocr_results:
 
 ``gather_ocr_results``
 ~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：将多个并行 OCR 任务返回的嵌套文本列表**扁平化**为单一页文本列表。
-- **输入**：
+- **Description**: **Flattens** a nested list of OCR text results from multiple parallel tasks into a single list of page texts.
+- **Inputs**:
   - ``ocr_texts`` (List[List[str]])
-- **输出**：
+- **Outputs**:
   - ``flat_page_texts_list`` (List[str])
-- **用途**：聚合分布式 OCR 结果，恢复原始页面顺序。
+- **Use Case**: Aggregates distributed OCR results and restores the original page order.
 
 .. _task-split_text_for_summary:
 
 ``split_text_for_summary``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：将页文本列表按指定页数重新组合为**摘要块**，供 LLM 并行摘要。
-- **输入**：
+- **Description**: Re-groups a list of page texts into **summary chunks** (by specified page count) for parallel LLM summarization.
+- **Inputs**:
   - ``flat_page_texts_list`` (List[str])
-  - ``pages_per_summary_chunk`` (int, 默认 10)
-- **输出**：
+  - ``pages_per_summary_chunk`` (int, default 10)
+- **Outputs**:
   - ``summary_text_chunks`` (List[str])
-- **用途**：解决 LLM 上下文长度限制，实现长文档分段摘要。
+- **Use Case**: Addresses LLM context length limits, enabling segmented summarization of long documents.
 
-结果持久化任务
---------------
+Result Persistence Tasks
+------------------------
 
 .. _task-save_summary_to_md:
 
 ``save_summary_to_md``
 ~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：将章节摘要保存为 Markdown 文件。
-- **输入**：
+- **Description**: Saves a chapter summary to a Markdown file.
+- **Inputs**:
   - ``summary_text`` (str)
   - ``output_directory`` (str)
   - ``chapter_title`` (str)
-- **输出**：
+- **Outputs**:
   - ``summary_file_path`` (str)
-- **用途**：结构化保存处理结果，便于阅读与集成。
+- **Use Case**: Structured storage of results for readability and integration.
 
 .. _task-assemble_final_report:
 
 ``assemble_final_report``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：将多个章节摘要 Markdown 文件**按顺序合并**为完整报告。
-- **输入**：
+- **Description**: **Merges multiple chapter summary Markdown files** into a complete report in order.
+- **Inputs**:
   - ``summary_md_paths`` (List[str])
   - ``book_title`` (str)
   - ``output_directory`` (str)
-- **输出**：
+- **Outputs**:
   - ``final_report_path`` (str)
-- **用途**：生成最终交付物，如书籍摘要、会议纪要合集等。
+- **Use Case**: Generates final deliverables such as book summaries or compiled meeting notes.
 
-辅助工具任务
-------------
+Utility Tasks
+-------------
 
 .. _task-scan_chapters_directory:
 
 ``scan_chapters_directory``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：扫描目录，获取所有 PDF 章节文件的路径、标题和页数信息。
-- **输入**：
+- **Description**: Scans a directory and returns paths, titles, and page counts of all PDF chapter files.
+- **Inputs**:
   - ``directory_path`` (str)
-- **输出**：
+- **Outputs**:
   - ``chapters_info`` (List[dict])
-- **用途**：批量发现章节文件，用于自动化处理流水线。
+- **Use Case**: Automatically discovers chapter files for batch processing pipelines.
 
 .. _task-load_markdown_files:
 
 ``load_markdown_files``
 ~~~~~~~~~~~~~~~~~~~~~~~
-- **描述**：加载指定目录下所有 `.md` 摘要文件，返回结构化列表。
-- **输入**：
+- **Description**: Loads all `.md` summary files from a specified directory and returns a structured list.
+- **Inputs**:
   - ``directory_path`` (str)
-- **输出**：
-  - ``chapter_summaries`` (List[dict])：含 ``title`` 和 ``content`` 字段。
-- **用途**：为报告重组、内容筛选等后处理提供数据源。
+- **Outputs**:
+  - ``chapter_summaries`` (List[dict]): Each entry contains ``title`` and ``content`` fields.
+- **Use Case**: Provides data source for post-processing tasks such as report reassembly or content filtering.
 
-使用建议
---------
+Usage Recommendations
+---------------------
 
-- **优先使用原生文本提取**：若 PDF 可复制文本，使用 ``extract_text_and_tables_from_native_pdf``，速度更快、精度更高。
-- **扫描件走 OCR 流程**：对图像型 PDF，务必使用 ``extract_text_from_pdf_range`` 或分块 OCR 方案。
-- **大文档务必分块**：超过 20 页的章节建议通过 ``scatter_chapter_in_memory`` + 并行 OCR 提升效率。
-- **结果及时持久化**：关键中间结果（如 OCR 文本、章节 PDF）建议保存到磁盘，避免内存溢出或重复计算。
+- **Prefer native text extraction**: For PDFs with selectable text, use ``extract_text_and_tables_from_native_pdf`` — it is faster and more accurate.
+- **Use OCR for scanned documents**: For image-based PDFs, always use ``extract_text_from_pdf_range`` or a chunked OCR approach.
+- **Chunk large documents**: For chapters over 20 pages, use ``scatter_chapter_in_memory`` with parallel OCR to improve efficiency.
+- **Persist results early**: Save critical intermediate results (e.g., OCR text, chapter PDFs) to disk to avoid memory overflow or redundant computation.
 
-扩展与定制
-----------
+Extensibility and Customization
+-------------------------------
 
-所有内置任务均为标准 Python 函数，用户可：
-- 直接调用其逻辑进行二次开发；
-- 参考其实现编写自定义任务；
-- 通过 ``upload_task`` 接口上传增强版任务覆盖默认行为。
+All built-in tasks are standard Python functions. Users can:
+- Reuse their logic for secondary development;
+- Implement custom tasks by following their patterns;
+- Upload enhanced versions via the ``upload_task`` API to override default behavior.
 
-> 💡 提示：完整任务列表可通过调用 Maze 服务端的 ``/api/tasks`` 接口动态获取。
+> 💡 Tip: The complete list of available tasks can be dynamically retrieved by calling the server's ``/api/tasks`` endpoint.

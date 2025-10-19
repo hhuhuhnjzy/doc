@@ -1,94 +1,94 @@
 .. _installation:
 
-安装指南
-========
+Installation Guide
+==================
 
-本指南将详细介绍如何在本地环境中安装 Maze 框架及其依赖项。为了确保安装过程顺利，我们建议您**分步安装**：首先手动安装一些对系统环境敏感的核心依赖（如 PyTorch），然后再通过 `pip` 批量安装其余依赖。
+This guide provides detailed instructions on how to install the Maze framework and its dependencies in a local environment. To ensure a smooth installation process, we recommend **installing in steps**: first manually installing core dependencies that are sensitive to system environments (such as PyTorch), then using `pip` to install the remaining dependencies in bulk.
 
-Maze 基于 Python 3.11 构建，建议使用虚拟环境以避免依赖冲突。
+Maze is built on Python 3.11. We strongly recommend using a virtual environment to avoid dependency conflicts.
 
-步骤 1：创建并激活虚拟环境（推荐）
-------------------------------------
+Step 1: Create and Activate a Virtual Environment (Recommended)
+----------------------------------------------------------------
 
-我们强烈建议使用 `venv` 或 `conda` 创建独立的 Python 虚拟环境：
+We highly recommend creating an isolated Python virtual environment using `venv` or `conda`:
 
 .. code-block:: bash
 
-   # 使用 venv 创建虚拟环境
+   # Create a virtual environment using venv
    python -m venv maze-env
    source maze-env/bin/activate    # Linux/macOS
    # maze-env\Scripts\activate     # Windows
 
-激活后，您的命令行提示符通常会显示 `(maze-env)`。
+After activation, your command-line prompt will typically display `(maze-env)`.
 
-步骤 2：手动安装 PyTorch 及其相关库
-----------------------------------
+Step 2: Manually Install PyTorch and Related Libraries
+-----------------------------------------------------
 
-根据官方 `requirements.txt` 文件，以下包由于包含平台相关的二进制文件，**不建议直接通过 `requirements.txt` 安装**：
+According to the official `requirements.txt`, the following packages contain platform-specific binaries and are **not recommended to be installed directly via `requirements.txt`**:
 
 - ``torch==2.6.0``
 - ``torchvision==0.21.0``
 
-请根据您的操作系统和是否拥有 NVIDIA GPU（以及 CUDA 版本）选择合适的安装命令。
+Please select the appropriate installation command based on your operating system, and whether you have an NVIDIA GPU (and its CUDA version).
 
-**如果您有 NVIDIA GPU 并希望启用 GPU 加速：**
+**If you have an NVIDIA GPU and want to enable GPU acceleration:**
 
-前往 `https://pytorch.org/get-started/locally/ <https://pytorch.org/get-started/locally/>`_ 获取最新命令。例如，在撰写本文时，适用于 Linux + CUDA 11.8 的命令为：
+Visit `https://pytorch.org/get-started/locally/ <https://pytorch.org/get-started/locally/>`_ to get the latest command. For example, at the time of writing, the command for Linux + CUDA 11.8 is:
 
 .. code-block:: bash
 
    pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu118
 
-**如果您使用 CPU-only 环境（无 GPU 或仅用 CPU）：**
+**If you are using a CPU-only environment (no GPU or CPU only):**
 
 .. code-block:: bash
 
    pip install torch==2.6.0+cpu torchvision==0.21.0+cpu --index-url https://download.pytorch.org/whl/cpu
 
 > .. note::
->    请务必访问 PyTorch 官网获取与您系统匹配的安装命令。错误的版本可能导致性能下降或运行失败。
+>    Always visit the PyTorch official website to get the installation command that matches your system. An incorrect version may lead to poor performance or runtime failures.
 
-步骤 3：安装其他第三方依赖
-----------------------------
+Step 3: Install Other Third-party Dependencies
+---------------------------------------------
 
-现在，您可以安全地安装剩余的依赖项。这些包大多为纯 Python 包或已提供通用二进制分发（wheel），安装成功率高。
+Now you can safely install the remaining dependencies. Most of these packages are pure Python or provide universal binary distributions (wheels), ensuring high installation success rates.
 
-1. 确保您已在项目根目录下（即包含 `requirements.txt` 的目录）。
-2. 执行以下命令：
+1. Make sure you are in the project root directory (the directory containing `requirements.txt`).
+2. Run the following command:
 
 .. code-block:: bash
 
    pip install -r requirements.txt
 
-该命令将自动从清华源（`pypi.tuna.tsinghua.edu.cn`）安装所有必需的第三方库，包括 FastAPI、Flask、Ray、Transformers、EasyOCR 等。
+This command will automatically install all required third-party libraries from the Tsinghua mirror (`pypi.tuna.tsinghua.edu.cn`), including FastAPI, Flask, Ray, Transformers, EasyOCR, and more.
 
 > .. warning::
->    如果您跳过步骤 2 直接运行此命令，可能会安装到不兼容的 `torch` 版本（例如 CPU 版本覆盖了 GPU 版本），导致后续运行效率低下。
+>    If you skip Step 2 and run this command directly, you may end up with an incompatible version of `torch` (e.g., CPU version overwriting GPU version), resulting in significantly reduced performance.
 
-步骤 4：安装 Maze 项目本身
----------------------------
+Step 4: Install the Maze Project Itself
+---------------------------------------
 
-使用可编辑模式（`-e`）安装 Maze，以便开发和调试，并注册 `maze` 命令行工具：
+Install Maze in editable mode (`-e`) for development and debugging, which also registers the `maze` command-line tool:
 
 .. code-block:: bash
 
    pip install -e .
 
-安装完成后，您可以通过以下命令验证安装：
+After installation, verify it with the following command:
 
 .. code-block:: bash
 
    maze --help
 
-如果正确输出帮助信息，则表示 Maze 已成功安装。
+If help information is displayed correctly, Maze has been successfully installed.
 
-步骤 5：配置项目路径（服务器模式必需）
----------------------------------------
+Step 5: Configure Project Path (Required for Server Mode)
+---------------------------------------------------------
 
-如果您计划使用 **服务器模式**（分布式执行），请务必修改配置文件：
+If you plan to use **server mode** (distributed execution), you must modify the configuration file:
 
-1. 打开 ``config/config.toml``。
-2. 找到 ``[paths]`` 部分，将 ``project_root`` 修改为您的 Maze 项目在本地的**绝对路径**：
+1. Open ``config/config.toml``.
+2. Locate the ``[paths]`` section and change ``project_root`` to the **absolute path** of your Maze project on your local machine:
 
    .. code-block:: toml
 
@@ -96,29 +96,29 @@ Maze 基于 Python 3.11 构建，建议使用虚拟环境以避免依赖冲突�
       project_root = "/your/absolute/path/to/Maze"
 
 > .. important::
->    此步骤至关重要。Ray 集群需要通过该路径将代码分发到所有工作节点（Worker Nodes）。路径错误将导致远程节点无法找到代码而执行失败。
+>    This step is critical. The Ray cluster needs this path to distribute code to all worker nodes. An incorrect path will cause remote nodes to fail to locate the code, leading to execution failure.
 
-可选步骤：下载示例模型
-----------------------
+Optional Step: Download Sample Models
+-------------------------------------
 
-如果您希望运行内置的、依赖本地模型的示例工作流（如 EasyOCR 或 Hugging Face 模型），可以运行以下脚本下载模型缓存：
+If you wish to run built-in example workflows that depend on local models (such as EasyOCR or Hugging Face models), run the following script to download model caches:
 
 .. code-block:: bash
 
    python maze/utils/download_model.py
 
-这将把所需模型文件下载到 ``model_cache/`` 目录。
+This will download the required model files into the ``model_cache/`` directory.
 
-故障排除
---------
+Troubleshooting
+---------------
 
-- **`torch` 安装失败？**
-  请确认网络连接，或尝试更换 PyTorch 官方镜像源。避免使用国内镜像站安装 `torch`，因为它们可能不同步。
+- **`torch` installation fails?**
+  Check your network connection or try switching to the official PyTorch mirror. Avoid using domestic mirrors for `torch` installation, as they may be out of sync.
 
-- **`pip install -r requirements.txt` 报错？**
-  确保已成功安装 `torch` 和 `torchvision`。检查 Python 版本是否为 3.11。
+- **`pip install -r requirements.txt` fails?**
+  Ensure `torch` and `torchvision` are successfully installed. Verify your Python version is 3.11.
 
-- **`maze` 命令未找到？**
-  确认已执行 `pip install -e .`，且虚拟环境已激活。
+- **`maze` command not found?**
+  Confirm that `pip install -e .` was executed and the virtual environment is activated.
 
-完成以上步骤后，您的 Maze 环境已准备就绪，可以进入 :ref:`quick_start` 开始第一个分布式 Agent 工作流。
+After completing the above steps, your Maze environment is ready. Proceed to :ref:`quick_start` to begin your first distributed Agent workflow.
