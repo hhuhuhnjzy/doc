@@ -1,15 +1,9 @@
 # .readthedocs.yaml
 version: 2
 
-# ✅ 正确：使用单数 "sphinx" 和 "configuration"
+# ✅ 只指定主语言（英文）的 conf.py
 sphinx:
   configuration: docs/source/conf.py
-
-# 如果你想构建多语言，需要用 "subprojects"
-subprojects:
-  translations:
-    - path: docs/source/zh/conf.py
-      language: zh
 
 build:
   os: ubuntu-22.04
