@@ -1,28 +1,17 @@
 欢迎使用 Maze 文档！
 ==================
 
-Welcome to the Maze Documentation!
-==========================
-
-**选择语言 / Choose Language**
-----------------------
-
-* :zh: 中文
-* :en: English
-
-概述 / Overview
+概述
 ----
 
 欢迎阅读 Maze 框架的官方文档。Maze 是一个分布式框架，专为大语言模型（LLM）智能体的开发与执行而设计。本文档将引导您完成安装、快速上手，并提供详细的模块说明与 API 参考。
 
-Welcome to the official documentation of Maze. Maze is a distributed framework designed for the development and execution of Large Language Model (LLM) agents. This documentation will guide you through installation, quick start, and provide detailed module descriptions and API references.
-
-目录 / Table of Contents
---------------------
+目录
+----
 
 .. toctree::
    :maxdepth: 2
-   :caption: 目录 / Table of Contents:
+   :caption: 目录:
 
    overview
    installation

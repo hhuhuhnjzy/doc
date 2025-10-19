@@ -1,26 +1,27 @@
 # Configuration file for the Sphinx documentation builder.
+# This is the main English conf.py
 
 # -- Project information -----------------------------------------------------
-
 project = 'Maze'
 copyright = '2025, HUST'
 author = 'HUST'
 release = '0.1'
 version = '0.1.0'
-language='zh_CN'
-# -- General configuration ---------------------------------------------------
 
-# Add necessary extensions
+# ✅ 关键：设置语言为英文
+language = 'en'
+
+# -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.internationalization',
+    'sphinx.ext.internationalization',  # 可选：支持多语言（需要 sphinx-intl）
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode',        # 可选：添加源码链接
-    'sphinxcontrib.httpdomain',   # ✅ 关键：支持 .. http:get:: 等指令
-    'sphinx_copybutton',          # 可选：为代码块添加复制按钮（推荐）
+    'sphinx.ext.viewcode',
+    'sphinxcontrib.httpdomain',   # 支持 HTTP API 文档
+    'sphinx_copybutton',          # 代码块复制按钮
 ]
 
 # Intersphinx mapping
@@ -33,10 +34,8 @@ intersphinx_disabled_domains = ['std']
 templates_path = ['_templates']
 
 # -- Options for HTML output -------------------------------------------------
-
 html_theme = 'sphinx_rtd_theme'
 
-# Optional: configure sphinx_rtd_theme
 html_theme_options = {
     'collapse_navigation': False,
     'sticky_navigation': True,
@@ -49,8 +48,5 @@ html_theme_options = {
 epub_show_urls = 'footnote'
 
 # -- Additional settings -----------------------------------------------------
-# Ensure JSON is highlighted properly
 highlight_language = 'python'
-
-# Suppress warnings for missing references (optional)
 suppress_warnings = ['ref.citation']
