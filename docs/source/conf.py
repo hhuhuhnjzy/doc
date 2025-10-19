@@ -7,11 +7,12 @@ copyright = '2025, HUST'
 author = 'HUST'
 release = '0.1'
 version = '0.1.0'
-
+language='zh_CN'
 # -- General configuration ---------------------------------------------------
 
 # Add necessary extensions
 extensions = [
+    'sphinx.ext.internationalization',
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
