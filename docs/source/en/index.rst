@@ -6,7 +6,6 @@ Overview
 
 Welcome to the official documentation for the Maze framework. Maze is a distributed framework designed for the development and execution of large language model (LLM) agents. This documentation will guide you through installation, getting started, and provide detailed module descriptions and API references.
 
-Table of Contents
 -----------------
 
 .. toctree::
